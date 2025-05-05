@@ -1,0 +1,1260 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Calculator & Games Hub</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
+<style>
+  /* Calculator & Tic Tac Toe Styles */
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }
+  .container {
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+  }
+  .calculator {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transition: all 0.5s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  .calculator.hidden {
+    opacity: 0;
+    transform: scale(0.8);
+    pointer-events: none;
+  }
+  .display {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: right;
+    font-size: 2em;
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .display::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #00dbde, #fc00ff);
+  }
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+  }
+  button.calc-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 10px;
+    padding: 15px;
+    font-size: 1.2em;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  button.calc-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-3px);
+  }
+  button.calc-btn:active {
+    transform: translateY(1px);
+  }
+  .operator {
+    background: rgba(0, 219, 222, 0.3);
+  }
+  .equals {
+    background: rgba(252, 0, 255, 0.3);
+    grid-column: span 2;
+  }
+  .clear {
+    background: rgba(255, 71, 87, 0.3);
+  }
+  /* Game Styles */
+  .game {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.5s ease;
+    transform: scale(1.1);
+    z-index: 10;
+  }
+  .game.active {
+    opacity: 1;
+    pointer-events: all;
+    transform: scale(1);
+  }
+  .game-board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 10px;
+    margin: 30px 0;
+  }
+  .cell {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .cell:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+  }
+  .cell.x::before, .cell.x::after {
+    content: '';
+    position: absolute;
+    width: 80%;
+    height: 8px;
+    background: #00dbde;
+    border-radius: 5px;
+  }
+  .cell.x::before {
+    transform: rotate(45deg);
+  }
+  .cell.x::after {
+    transform: rotate(-45deg);
+  }
+  .cell.o::before {
+    content: '';
+    position: absolute;
+    width: 60%;
+    height: 60%;
+    border: 8px solid #fc00ff;
+    border-radius: 50%;
+  }
+  .game-title {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #00dbde, #fc00ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+  .game-status {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+    height: 24px;
+  }
+  .back-button {
+    padding: 10px 20px;
+    background: rgba(255, 71, 87, 0.3);
+    border-radius: 50px;
+    margin-top: 20px;
+    font-size: 1em;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s ease;
+  }
+  .back-button:hover {
+    background: rgba(255, 71, 87, 0.5);
+  }
+  .particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+  }
+  .particle {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    animation: float linear infinite;
+  }
+  @keyframes float {
+    0% {
+      transform: translateY(0) rotate(0deg);
+    }
+    100% {
+      transform: translateY(-100vh) rotate(360deg);
+    }
+  }
+  @media (max-width: 500px) {
+    .container {
+      max-width: 90%;
+    }
+    .game-board {
+      grid-template-columns: repeat(3, 80px);
+      grid-template-rows: repeat(3, 80px);
+    }
+  }
+
+  /* Block Blast Game Styles */
+  #block-blast-container {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.5s ease;
+    z-index: 10;
+  }
+  #block-blast-container.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+  #game-container-blockblast {
+    position: relative;
+    width: 350px;
+    height: 600px;
+    background: #1e1e2f;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+    overflow: hidden;
+    user-select: none;
+    touch-action: manipulation;
+    display: flex;
+    flex-direction: column;
+  }
+  #game-container-blockblast header {
+    flex-shrink: 0;
+    background: #292a42;
+    padding: 10px 15px;
+    color: #f0f0f0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  }
+  #score-blockblast {
+    flex-shrink: 0;
+    background: #292a42;
+    padding: 8px 15px;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    letter-spacing: 1.1px;
+    border-bottom: 2px solid #5d54a4;
+    user-select: none;
+  }
+  #game-area {
+    position: relative;
+    flex-grow: 1;
+    background: linear-gradient(180deg, #2e2f4f 0%, #1e1e2f 100%);
+    overflow: hidden;
+  }
+  .block {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4), inset 0 -4px 8px rgba(255,255,255,0.2);
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.15s ease, opacity 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: white;
+    font-size: 1.8rem;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.8);
+  }
+  .block.red { background: #e74c3c; }
+  .block.blue { background: #3498db; }
+  .block.green { background: #2ecc71; }
+  .block.yellow { background: #f1c40f; color: #333; }
+  .block.purple { background: #9b59b6; }
+  .block.orange { background: #e67e22; color: #333; }
+  .block.blasted {
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(1.5) rotate(20deg);
+  }
+  #game-over {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 90%;
+    max-width: 320px;
+    background: rgba(30, 30, 47, 0.95);
+    border-radius: 15px;
+    padding: 30px 25px;
+    transform: translate(-50%, -50%);
+    color: #f5f5f5;
+    font-weight: 700;
+    text-align: center;
+    z-index: 1000;
+    box-shadow: 0 0 15px #b45eff;
+  }
+  #game-over[aria-hidden="true"] {
+    display: none;
+  }
+  #game-over button {
+    margin-top: 20px;
+    background: #764ba2;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  #game-over button:hover, #game-over button:focus {
+    background: #5d3a7d;
+    outline: none;
+  }
+  @media (max-width: 400px) {
+    #game-container-blockblast {
+      width: 100vw;
+      height: 600px;
+      border-radius: 0;
+    }
+  }
+
+  /* Flappy Bird Game Styles */
+  #flappy-container {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, #70c5ce, #5ebfbe);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 20px;
+    box-shadow:
+      0 0 30px rgba(255, 255, 255, 0.3),
+      inset 0 -5px 10px rgba(255,255,255,0.2),
+      inset 0 3px 6px rgba(0,0,0,0.2);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.5s ease;
+    z-index: 20;
+  }
+  #flappy-container.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+  #game-container-flappy {
+    position: relative;
+    width: 350px;
+    height: 550px;
+    background: #4ec0ca;
+    border-radius: 20px;
+    box-shadow:
+      0 0 30px rgba(255, 255, 255, 0.3),
+      inset 0 -5px 10px rgba(255,255,255,0.2),
+      inset 0 3px 6px rgba(0,0,0,0.2);
+  }
+  canvas#gameCanvas {
+    display: block;
+    border-radius: 20px;
+    background: linear-gradient(to bottom, #70c5ce, #5ebfbe);
+  }
+  #score-flappy {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-size: 24px;
+    text-shadow: 2px 2px 6px #176859;
+    user-select: none;
+  }
+  #message-flappy {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 90%;
+    max-width: 320px;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: white;
+    font-size: 18px;
+    text-shadow: 2px 2px 8px #000000bb;
+    background: #317a67cc;
+    padding: 15px;
+    border-radius: 14px;
+    display: none;
+    user-select: none;
+  }
+  #message-flappy button {
+    margin-top: 12px;
+    font-size: 16px;
+    padding: 10px 20px;
+    background: #43a47f;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px #2f6b54;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  #message-flappy button:hover, #message-flappy button:focus {
+    background: #37936d;
+  }
+</style>
+</head>
+<body>
+  <div class="particles" id="particles"></div>
+  <div class="container">
+    <!-- Calculator -->
+    <div class="calculator" id="calculator">
+      <div class="display" id="display">0</div>
+      <div class="buttons">
+        <button class="calc-btn clear" type="button" aria-label="Clear display" onclick="clearDisplay()">C</button>
+        <button class="calc-btn" type="button" onclick="appendToDisplay('(')">(</button>
+        <button class="calc-btn" type="button" onclick="appendToDisplay(')')">)</button>
+        <button class="calc-btn operator" type="button" onclick="appendToDisplay('/')">/</button>
+
+        <button class="calc-btn" type="button" onclick="appendToDisplay('7')">7</button>
+        <button class="calc-btn" type="button" onclick="appendToDisplay('8')">8</button>
+        <button class="calc-btn" type="button" onclick="appendToDisplay('9')">9</button>
+        <button class="calc-btn operator" type="button" onclick="appendToDisplay('x')">x</button>
+
+        <button class="calc-btn" type="button" onclick="appendToDisplay('4')">4</button>
+        <button class="calc-btn" type="button" onclick="appendToDisplay('5')">5</button>
+        <button class="calc-btn" type="button" onclick="appendToDisplay('6')">6</button>
+        <button class="calc-btn operator" type="button" onclick="appendToDisplay('-')">-</button>
+
+        <button class="calc-btn" type="button" onclick="appendToDisplay('1')">1</button>
+        <button class="calc-btn" type="button" onclick="appendToDisplay('2')">2</button>
+        <button class="calc-btn" type="button" onclick="appendToDisplay('3')">3</button>
+        <button class="calc-btn operator" type="button" onclick="appendToDisplay('+')">+</button>
+
+        <button class="calc-btn" type="button" onclick="appendToDisplay('0')">0</button>
+        <button class="calc-btn" type="button" onclick="appendToDisplay('.')">.</button>
+        <button class="calc-btn" type="button" onclick="appendToDisplay('1x1')">1x1</button>
+        <button class="calc-btn" type="button" onclick="appendToDisplay('1x2')">1x2</button>
+        <button class="calc-btn" type="button" onclick="appendToDisplay('1x3')">1x3</button>
+        <button class="calc-btn equals" type="button" onclick="calculate()">=</button>
+      </div>
+    </div>
+
+    <!-- Tic Tac Toe Game -->
+    <div class="game" id="tic-tac-toe-game" aria-label="Tic Tac Toe Game" role="region" aria-live="polite" aria-atomic="true">
+      <h1 class="game-title">Tic Tac Toe</h1>
+      <div class="game-status" id="game-status">Player X's turn</div>
+      <div class="game-board" id="game-board" role="grid" aria-label="Tic Tac Toe Board">
+        <div class="cell" data-index="0" role="gridcell" tabindex="0" aria-label="Cell 1"></div>
+        <div class="cell" data-index="1" role="gridcell" tabindex="0" aria-label="Cell 2"></div>
+        <div class="cell" data-index="2" role="gridcell" tabindex="0" aria-label="Cell 3"></div>
+        <div class="cell" data-index="3" role="gridcell" tabindex="0" aria-label="Cell 4"></div>
+        <div class="cell" data-index="4" role="gridcell" tabindex="0" aria-label="Cell 5"></div>
+        <div class="cell" data-index="5" role="gridcell" tabindex="0" aria-label="Cell 6"></div>
+        <div class="cell" data-index="6" role="gridcell" tabindex="0" aria-label="Cell 7"></div>
+        <div class="cell" data-index="7" role="gridcell" tabindex="0" aria-label="Cell 8"></div>
+        <div class="cell" data-index="8" role="gridcell" tabindex="0" aria-label="Cell 9"></div>
+      </div>
+      <button class="back-button" type="button" aria-label="Back to Calculator" onclick="exitGame()">Back to Calculator</button>
+    </div>
+  </div>
+
+  <!-- Block Blast Game -->
+  <div id="block-blast-container" aria-label="Block Blast Game" role="region" aria-live="polite" aria-atomic="true">
+    <div id="game-container-blockblast" role="main" aria-label="Block Blast Game">
+      <header>BLOCK BLAST</header>
+      <div id="score-blockblast" aria-live="polite" aria-atomic="true">Score: 0</div>
+      <div id="game-area"></div>
+      <div id="game-over" role="alertdialog" aria-modal="true" aria-hidden="true">
+        <div id="game-over-text"></div>
+        <button id="restart-btn" aria-label="Restart game">Main Lagi</button>
+        <button class="back-button" type="button" aria-label="Back to Calculator" onclick="exitBlockBlast()">Back to Calculator</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flappy Bird Game -->
+  <div id="flappy-container" aria-label="Flappy Bird game" role="region" aria-live="polite" aria-atomic="true">
+    <div id="game-container-flappy" role="main" aria-label="Flappy Bird game">
+      <canvas id="gameCanvas" width="350" height="550" tabindex="0" aria-live="polite" aria-atomic="true"></canvas>
+      <div id="score-flappy" aria-live="polite" aria-atomic="true">0</div>
+      <div id="message-flappy" role="alertdialog" aria-modal="true" aria-labelledby="messageTitle" aria-describedby="messageDesc">
+        <div id="messageTitle" style="font-weight:bold; font-size:24px; margin-bottom:8px;">Game Over</div>
+        <div id="messageDesc">You scored <span id="finalScore">0</span> points.<br />Click or tap to restart!</div>
+        <button id="restartBtnFlappy" aria-label="Restart game">Restart</button>
+        <button class="back-button" type="button" aria-label="Back to Calculator" onclick="exitFlappy()">Back to Calculator</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Calculator functionality
+  let currentDisplay = '0';
+  const display = document.getElementById('display');
+  const calculator = document.getElementById('calculator');
+  const ticTacToeGame = document.getElementById('tic-tac-toe-game');
+  const blockBlastContainer = document.getElementById('block-blast-container');
+  const flappyContainer = document.getElementById('flappy-container');
+  const particlesContainer = document.getElementById('particles');
+
+  function updateDisplay() {
+    display.textContent = currentDisplay;
+  }
+
+  function appendToDisplay(value) {
+    if (currentDisplay === '0' && value !== '.') {
+      currentDisplay = value;
+    } else {
+      currentDisplay += value;
+    }
+
+    // Check for 1x1 to open Tic Tac Toe game
+    if (currentDisplay === '1x1') {
+      openTicTacToe();
+      return;
+    }
+    // Check for 1x2 to open Block Blast game
+    if (currentDisplay === '1x2') {
+      openBlockBlast();
+      return;
+    }
+    // Check for 1x3 to open Flappy Bird game
+    if (currentDisplay === '1x3') {
+      openFlappy();
+      return;
+    }
+
+    updateDisplay();
+  }
+
+  function clearDisplay() {
+    currentDisplay = '0';
+    updateDisplay();
+  }
+
+  function calculate() {
+    try {
+      // Replace 'x' with '*' for calculation
+      const expression = currentDisplay.replace(/x/g, '*');
+      currentDisplay = eval(expression).toString();
+      updateDisplay();
+    } catch (error) {
+      currentDisplay = 'Error';
+      updateDisplay();
+      setTimeout(clearDisplay, 1000);
+    }
+  }
+
+  // Tic Tac Toe Game functionality
+  let currentPlayer = 'x';
+  let gameBoard = ['', '', '', '', '', '', '', '', ''];
+  let gameActive = true;
+  const statusDisplay = document.getElementById('game-status');
+  const cells = ticTacToeGame.querySelectorAll('.cell');
+
+  function openTicTacToe() {
+    calculator.classList.add('hidden');
+    blockBlastContainer.classList.remove('active');
+    flappyContainer.classList.remove('active');
+    ticTacToeGame.classList.add('active');
+    resetTicTacToe();
+    createParticles();
+  }
+
+  function exitGame() {
+    calculator.classList.remove('hidden');
+    ticTacToeGame.classList.remove('active');
+    clearParticles();
+    clearDisplay();
+  }
+
+  const winningConditions = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+    [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+    [0, 4, 8], [2, 4, 6]             // diagonals
+  ];
+
+  function handleCellClick(e) {
+    const clickedCell = e.target;
+    const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
+
+    if (gameBoard[clickedCellIndex] !== '' || !gameActive) return;
+
+    handleCellPlayed(clickedCell, clickedCellIndex);
+    handleResultValidation();
+  }
+
+  function handleCellPlayed(clickedCell, clickedCellIndex) {
+    gameBoard[clickedCellIndex] = currentPlayer;
+    clickedCell.classList.add(currentPlayer);
+  }
+
+  function handleResultValidation() {
+    let roundWon = false;
+
+    for (let i = 0; i < winningConditions.length; i++) {
+      const [a, b, c] = winningConditions[i];
+
+      if (gameBoard[a] === '' || gameBoard[b] === '' || gameBoard[c] === '') continue;
+
+      if (gameBoard[a] === gameBoard[b] && gameBoard[b] === gameBoard[c]) {
+        roundWon = true;
+        break;
+      }
+    }
+
+    if (roundWon) {
+      statusDisplay.textContent = `Player ${currentPlayer.toUpperCase()} wins!`;
+      gameActive = false;
+      celebrateWin();
+      return;
+    }
+
+    if (!gameBoard.includes('')) {
+      statusDisplay.textContent = "Game ended in a draw!";
+      gameActive = false;
+      return;
+    }
+
+    currentPlayer = currentPlayer === 'x' ? 'o' : 'x';
+    statusDisplay.textContent = `Player ${currentPlayer.toUpperCase()}'s turn`;
+  }
+
+  function resetTicTacToe() {
+    currentPlayer = 'x';
+    gameBoard = ['', '', '', '', '', '', '', '', ''];
+    gameActive = true;
+    statusDisplay.textContent = `Player ${currentPlayer.toUpperCase()}'s turn`;
+
+    cells.forEach(cell => {
+      cell.classList.remove('x', 'o');
+    });
+  }
+
+  function celebrateWin() {
+    const colors = ['#00dbde', '#fc00ff', '#ff4747', '#47ff5e', '#f9ff47'];
+
+    for (let i = 0; i < 50; i++) {
+      const confetti = document.createElement('div');
+      confetti.classList.add('particle');
+      confetti.style.left = `${Math.random() * 100}%`;
+      confetti.style.width = `${Math.random() * 10 + 5}px`;
+      confetti.style.height = confetti.style.width;
+      confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+      confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+      confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+      particlesContainer.appendChild(confetti);
+
+      setTimeout(() => {
+        confetti.remove();
+      }, 3000);
+    }
+  }
+
+  function createParticles() {
+    for (let i = 0; i < 20; i++) {
+      const particle = document.createElement('div');
+      particle.classList.add('particle');
+      particle.style.left = `${Math.random() * 100}%`;
+      particle.style.bottom = `${Math.random() * 20}px`;
+      particle.style.width = `${Math.random() * 5 + 2}px`;
+      particle.style.height = particle.style.width;
+      particle.style.opacity = Math.random() * 0.5 + 0.1;
+      particle.style.animationDuration = `${Math.random() * 10 + 5}s`;
+      particle.style.animationDelay = `${Math.random() * 5}s`;
+      particlesContainer.appendChild(particle);
+    }
+  }
+
+  function clearParticles() {
+    particlesContainer.innerHTML = '';
+  }
+
+  // Event listeners for Tic Tac Toe cells
+  cells.forEach(cell => {
+    cell.addEventListener('click', handleCellClick);
+    cell.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleCellClick(e);
+      }
+    });
+  });
+
+  // Keyboard support for calculator
+  document.addEventListener('keydown', (e) => {
+    if (ticTacToeGame.classList.contains('active') || blockBlastContainer.classList.contains('active') || flappyContainer.classList.contains('active')) return;
+
+    if (/[0-9()+\-.]/.test(e.key)) {
+      appendToDisplay(e.key);
+    } else if (e.key === '*') {
+      appendToDisplay('x');
+    } else if (e.key === '/') {
+      appendToDisplay('/');
+    } else if (e.key === 'Enter') {
+      calculate();
+    } else if (e.key === 'Escape') {
+      clearDisplay();
+    } else if (e.key === 'Backspace') {
+      currentDisplay = currentDisplay.slice(0, -1) || '0';
+      updateDisplay();
+    }
+  });
+
+  // Block Blast Game functionality
+  (function(){
+    const gameArea = document.getElementById('game-area');
+    const scoreDisplay = document.getElementById('score-blockblast');
+    const gameOverModal = document.getElementById('game-over');
+    const gameOverText = document.getElementById('game-over-text');
+    const restartBtn = document.getElementById('restart-btn');
+
+    let score = 0;
+    let blocks = [];
+    let gameInterval = null;
+    let blockFallSpeed = 1.2; // pixels per frame baseline
+    let spawnInterval = 1500; // milliseconds baseline
+    let difficultyIncreaseInterval = 8000; // every 8 seconds increase difficulty
+    let gameRunning = false;
+    let spawnTimerID = null;
+    let difficultyTimerID = null;
+
+    const blockColors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
+    const blockEmojis = ['🔥', '💥', '💣', '⚡', '🌟', '✨'];
+
+    // Size constraints
+    const blockSize = 50;
+    const gameWidth = 350;
+    const gameHeight = 600;
+
+    function createBlock() {
+      const block = document.createElement('div');
+      block.classList.add('block');
+      // Random color
+      const colorIndex = Math.floor(Math.random() * blockColors.length);
+      const color = blockColors[colorIndex];
+      block.classList.add(color);
+      block.textContent = blockEmojis[colorIndex];
+
+      // Random horizontal position within game area width minus block size
+      const maxPosX = gameWidth - blockSize;
+      const posX = Math.floor(Math.random() * (maxPosX + 1));
+      block.style.left = posX + 'px';
+      block.style.top = '-60px'; // above the visible area
+
+      gameArea.appendChild(block);
+
+      const blockData = {
+        el: block,
+        x: posX,
+        y: -60,
+        speed: blockFallSpeed + Math.random() * 0.6, // slight speed variation
+        blasted: false
+      };
+
+      // Add click/tap handler to blast block
+      block.addEventListener('pointerdown', () => {
+        if (blockData.blasted) return;
+        blockData.blasted = true;
+        score += 1;
+        updateScore();
+        blastBlock(blockData);
+      });
+
+      blocks.push(blockData);
+    }
+
+    function blastBlock(blockData) {
+      const el = blockData.el;
+      el.classList.add('blasted');
+      // Remove after animation
+      setTimeout(() => {
+        if (el.parentNode) el.parentNode.removeChild(el);
+        blocks = blocks.filter(b => b !== blockData);
+      }, 400);
+    }
+
+    function updateScore() {
+      scoreDisplay.textContent = 'Score: ' + score;
+    }
+
+    function gameOver() {
+      gameRunning = false;
+      clearInterval(gameInterval);
+      clearTimeout(spawnTimerID);
+      clearInterval(difficultyTimerID);
+
+      // Remove all blocks
+      blocks.forEach(b => {
+        if (b.el.parentNode) b.el.parentNode.removeChild(b.el);
+      });
+      blocks = [];
+
+      // Show game over modal
+      gameOverText.textContent = `Game Over! Skor kamu: ${score}`;
+      gameOverModal.style.display = 'block';
+      gameOverModal.setAttribute('aria-hidden', 'false');
+      restartBtn.focus();
+    }
+
+    function spawnBlocks() {
+      if (!gameRunning) return;
+      createBlock();
+      // Schedule next spawn
+      spawnTimerID = setTimeout(spawnBlocks, spawnInterval);
+    }
+
+    function increaseDifficulty() {
+      if (!gameRunning) return;
+      // Increase falling speed by about 10%
+      blockFallSpeed *= 1.1;
+      // Decrease spawn interval but not less than 400ms
+      spawnInterval = Math.max(400, spawnInterval * 0.93);
+    }
+
+    function gameLoop() {
+      if (!gameRunning) return;
+      // Move blocks downward
+      blocks.forEach(b => {
+        if (b.blasted) return;
+        b.y += b.speed;
+        if (b.y > gameHeight - blockSize) {
+          // Block reached bottom - game over
+          gameOver();
+        } else {
+          b.el.style.top = b.y + 'px';
+        }
+      });
+      requestAnimationFrame(gameLoop);
+    }
+
+    function startGame() {
+      score = 0;
+      updateScore();
+      blockFallSpeed = 1.2;
+      spawnInterval = 1500;
+      gameRunning = true;
+      gameOverModal.style.display = 'none';
+      gameOverModal.setAttribute('aria-hidden', 'true');
+
+      // Start spawning blocks and difficulty increases
+      spawnBlocks();
+      difficultyTimerID = setInterval(increaseDifficulty, difficultyIncreaseInterval);
+
+      // Start the animation loop
+      requestAnimationFrame(gameLoop);
+    }
+
+    restartBtn.addEventListener('click', () => {
+      startGame();
+    });
+
+    // Expose functions to global scope for control
+    window.openBlockBlast = function() {
+      calculator.classList.add('hidden');
+      ticTacToeGame.classList.remove('active');
+      flappyContainer.classList.remove('active');
+      blockBlastContainer.classList.add('active');
+      startGame();
+      clearParticles();
+    };
+
+    window.exitBlockBlast = function() {
+      calculator.classList.remove('hidden');
+      blockBlastContainer.classList.remove('active');
+      // Stop game
+      gameRunning = false;
+      clearInterval(gameInterval);
+      clearTimeout(spawnTimerID);
+      clearInterval(difficultyTimerID);
+      // Remove all blocks
+      blocks.forEach(b => {
+        if (b.el.parentNode) b.el.parentNode.removeChild(b.el);
+      });
+      blocks = [];
+      clearParticles();
+      clearDisplay();
+    };
+  })();
+
+  // Flappy Bird Game functionality
+  (function(){
+    const flappyCanvas = document.getElementById('gameCanvas');
+    const ctx = flappyCanvas.getContext('2d');
+    const scoreEl = document.getElementById('score-flappy');
+    const messageEl = document.getElementById('message-flappy');
+    const finalScoreEl = document.getElementById('finalScore');
+    const restartBtn = document.getElementById('restartBtnFlappy');
+
+    // Game dimensions
+    const WIDTH = flappyCanvas.width;
+    const HEIGHT = flappyCanvas.height;
+    const GROUND_HEIGHT = 80;
+
+    // Bird parameters
+    const BIRD_X = 80;
+    const BIRD_SIZE = 26;
+
+    // Pipe parameters
+    const PIPE_WIDTH = 60;
+    const PIPE_GAP = 140; // vertical gap between top and bottom pipes
+    const PIPE_SPEED = 2.7;
+    const PIPE_MIN_HEIGHT = 50;
+    const PIPE_MAX_HEIGHT = HEIGHT - GROUND_HEIGHT - PIPE_GAP - PIPE_MIN_HEIGHT;
+
+    // Physics
+    const GRAVITY = 0.4;
+    const FLAP_POWER = -7.5;
+    const MAX_DROP_SPEED = 10;
+
+    // States
+    let bird;
+    let pipes;
+    let score;
+    let gameOver;
+    let frameCount;
+
+    // Bird class
+    class Bird {
+      constructor() {
+        this.x = BIRD_X;
+        this.y = HEIGHT / 2;
+        this.radius = BIRD_SIZE / 2;
+        this.velocity = 0;
+        this.rotation = 0;
+        this.frame = 0;
+        this.frameTick = 0;
+      }
+
+      flap() {
+        this.velocity = FLAP_POWER;
+      }
+
+      update() {
+        this.velocity += GRAVITY;
+        if (this.velocity > MAX_DROP_SPEED) this.velocity = MAX_DROP_SPEED;
+        this.y += this.velocity;
+
+        // Rotation angle
+        if (this.velocity < 0) {
+          this.rotation = Math.min(this.rotation + 0.3, 0.3);
+        } else {
+          this.rotation = Math.max(this.rotation - 0.05, -Math.PI / 2);
+        }
+
+        // Animate wing flapping (3 frames)
+        this.frameTick++;
+        if (this.frameTick > 5) {
+          this.frame = (this.frame + 1) % 3;
+          this.frameTick = 0;
+        }
+      }
+
+      draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation);
+
+        // Draw bird body (circle base)
+        ctx.fillStyle = "#fed330";
+        ctx.strokeStyle = "#faa932";
+        ctx.lineWidth = 2;
+        ctx.shadowColor = "rgba(194, 122, 0, 0.6)";
+        ctx.shadowBlur = 5;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, this.radius, this.radius * 0.75, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw wing with flapping effect
+        ctx.fillStyle = "#f6b93b";
+        ctx.strokeStyle = "#c67c00";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        const wingYOffset = [-3, -5, -3][this.frame];
+        ctx.ellipse(-5, wingYOffset, this.radius / 1.2, this.radius / 2.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw eye
+        ctx.fillStyle = "#222";
+        ctx.beginPath();
+        ctx.ellipse(5, -5, 3, 4, 0, 0, Math.PI*2);
+        ctx.fill();
+
+        // Draw beak
+        ctx.fillStyle = "#e76f51";
+        ctx.beginPath();
+        ctx.moveTo(this.radius, 0);
+        ctx.lineTo(this.radius + 8, -4);
+        ctx.lineTo(this.radius + 8, 4);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      getBounds() {
+        return {
+          left: this.x - this.radius * 0.9,
+          right: this.x + this.radius * 0.9,
+          top: this.y - this.radius * 0.75,
+          bottom: this.y + this.radius * 0.75,
+        };
+      }
+    }
+
+    // Pipe class
+    class Pipe {
+      constructor(x) {
+        this.x = x;
+        this.topHeight = PIPE_MIN_HEIGHT + Math.random() * (PIPE_MAX_HEIGHT - PIPE_MIN_HEIGHT);
+        this.bottomY = this.topHeight + PIPE_GAP;
+        this.passed = false;
+      }
+
+      update() {
+        this.x -= PIPE_SPEED;
+      }
+
+      draw(ctx) {
+        ctx.fillStyle = "#3ead40";
+        ctx.strokeStyle = "#2c7a2a";
+        ctx.lineWidth = 3;
+        ctx.shadowColor = "rgba(27, 79, 18, 0.7)";
+        ctx.shadowBlur = 3;
+
+        // Top pipe
+        ctx.beginPath();
+        ctx.moveTo(this.x, 0);
+        ctx.lineTo(this.x + PIPE_WIDTH, 0);
+        ctx.lineTo(this.x + PIPE_WIDTH, this.topHeight);
+        ctx.quadraticCurveTo(this.x + PIPE_WIDTH / 2, this.topHeight + 12, this.x, this.topHeight);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Bottom pipe
+        const bottomHeight = HEIGHT - GROUND_HEIGHT - this.bottomY;
+        ctx.beginPath();
+        ctx.moveTo(this.x, HEIGHT - GROUND_HEIGHT);
+        ctx.lineTo(this.x + PIPE_WIDTH, HEIGHT - GROUND_HEIGHT);
+        ctx.lineTo(this.x + PIPE_WIDTH, this.bottomY);
+        ctx.quadraticCurveTo(this.x + PIPE_WIDTH / 2, this.bottomY - 12, this.x, this.bottomY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      getTopBounds() {
+        return {
+          left: this.x,
+          right: this.x + PIPE_WIDTH,
+          top: 0,
+          bottom: this.topHeight,
+        };
+      }
+
+      getBottomBounds() {
+        return {
+          left: this.x,
+          right: this.x + PIPE_WIDTH,
+          top: this.bottomY,
+          bottom: HEIGHT - GROUND_HEIGHT,
+        };
+      }
+    }
+
+    function isColliding(r1, r2) {
+      return !(
+        r2.left > r1.right ||
+        r2.right < r1.left ||
+        r2.top > r1.bottom ||
+        r2.bottom < r1.top
+      );
+    }
+
+    function resetGame() {
+      bird = new Bird();
+      pipes = [];
+      // Start with 3 pipes spaced evenly
+      for (let i = 0; i < 3; i++) {
+        pipes.push(new Pipe(WIDTH + i * 180));
+      }
+      score = 0;
+      gameOver = false;
+      frameCount = 0;
+      scoreEl.textContent = score;
+      messageEl.style.display = "none";
+    }
+
+    function drawGround() {
+      ctx.fillStyle = '#deb887';
+      ctx.shadowColor = 'rgba(0,0,0,0.2)';
+      ctx.shadowBlur = 8;
+      ctx.fillRect(0, HEIGHT - GROUND_HEIGHT, WIDTH, GROUND_HEIGHT);
+      ctx.shadowBlur = 0;
+
+      // Draw some grass blade shapes on ground
+      const bladeWidth = 10;
+      const bladeHeight = 15;
+      ctx.fillStyle = '#87aa4b';
+      for (let x = 0; x < WIDTH; x += bladeWidth * 1.5) {
+        ctx.beginPath();
+        ctx.moveTo(x + bladeWidth/2, HEIGHT - GROUND_HEIGHT);
+        ctx.lineTo(x + bladeWidth, HEIGHT - GROUND_HEIGHT - bladeHeight);
+        ctx.lineTo(x, HEIGHT - GROUND_HEIGHT - bladeHeight);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    function drawScore() {
+      scoreEl.textContent = score;
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+      drawGround();
+
+      bird.update();
+      bird.draw(ctx);
+
+      // Update and draw pipes
+      for (let i = 0; i < pipes.length; i++) {
+        let pipe = pipes[i];
+        pipe.update();
+        pipe.draw(ctx);
+
+        // Check if pipe is passed by bird for scoring
+        if (!pipe.passed && pipe.x + PIPE_WIDTH < bird.x - bird.radius) {
+          pipe.passed = true;
+          score++;
+          drawScore();
+        }
+
+        // Collision detection
+        const birdBounds = bird.getBounds();
+        const topBounds = pipe.getTopBounds();
+        const bottomBounds = pipe.getBottomBounds();
+        if (isColliding(birdBounds, topBounds) || isColliding(birdBounds, bottomBounds)) {
+          gameOver = true;
+        }
+      }
+
+      // Remove pipes that are off screen and add new ones
+      if (pipes.length > 0 && pipes[0].x + PIPE_WIDTH < 0) {
+        pipes.shift();
+        pipes.push(new Pipe(pipes[pipes.length - 1].x + 180));
+      }
+
+      // Check collision with ground or ceiling
+      if (bird.y + bird.radius * 0.75 > HEIGHT - GROUND_HEIGHT || bird.y - bird.radius * 0.75 < 0) {
+        gameOver = true;
+      }
+
+      if (gameOver) {
+        finalScoreEl.textContent = score;
+        messageEl.style.display = "block";
+        return;
+      }
+
+      frameCount++;
+      requestAnimationFrame(gameLoop);
+    }
+
+    function flapHandler(e) {
+      if (gameOver) return;
+      // Support click/tap and keyboard space or up arrow
+      if (e.type === "keydown") {
+        if (e.code !== "Space" && e.code !== "ArrowUp") return;
+      }
+      bird.flap();
+      e.preventDefault();
+    }
+
+    // Restart game
+    function restartGame() {
+      resetGame();
+      gameLoop();
+    }
+
+    // Expose functions to global scope for control
+    window.openFlappy = function() {
+      calculator.classList.add('hidden');
+      ticTacToeGame.classList.remove('active');
+      blockBlastContainer.classList.remove('active');
+      flappyContainer.classList.add('active');
+      restartGame();
+      clearParticles();
+      flappyCanvas.focus();
+    };
+
+    window.exitFlappy = function() {
+      calculator.classList.remove('hidden');
+      flappyContainer.classList.remove('active');
+      // Stop game by setting gameOver true
+      gameOver = true;
+      messageEl.style.display = "none";
+      clearParticles();
+      clearDisplay();
+    };
+
+    // Initialization
+    resetGame();
+    gameLoop();
+
+    // Event listeners
+    flappyCanvas.addEventListener("click", flapHandler);
+    flappyCanvas.addEventListener("touchstart", e => {
+      e.preventDefault();
+      flapHandler(e);
+    }, {passive:false});
+    window.addEventListener("keydown", flapHandler);
+    restartBtn.addEventListener("click", e => {
+      e.preventDefault();
+      restartGame();
+    });
+
+  })();
+</script>
+</body>
+</html>
